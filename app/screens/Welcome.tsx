@@ -1,22 +1,36 @@
-import React, {useState} from "react";
+import React, { useState, useRef } from "react";
 import {
   StyleSheet,
   SafeAreaView,
   Image,
   Text,
+  TextInput,
   Button,
   View,
   TouchableHighlight,
   Modal,
+  PanResponder,
 } from "react-native";
-import {useColorScheme} from "@/components/useColorScheme";
+import { useColorScheme } from "@/components/useColorScheme";
 import Colors from "@/constants/Colors";
 import ColorPalette from "@/constants/ColorPalette";
 
 function Welcome() {
   const colorScheme = useColorScheme();
   const textColor = colorScheme === 'dark' ? Colors.dark.text : Colors.light.text;
-  const [modalVisible, setModalVisible] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        if (gestureState.dy > 50) { // Detect downward swipe
+          setModalVisible(false);
+        }
+      },
+    })
+  ).current;
 
   return (
     <SafeAreaView style={style.container}>
@@ -25,24 +39,22 @@ function Welcome() {
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(!modalVisible)}
-        >
-        <SafeAreaView style={style.modalView}>
+      >
+        <SafeAreaView style={style.modalView} {...panResponder.panHandlers}>
           <Button title={"Close"} onPress={() => setModalVisible(!modalVisible)}></Button>
         </SafeAreaView>
       </Modal>
 
       <Image style={style.image} source={require("../../assets/images/icon.png")} />
-      <Text style={[style.title, {
-        color: textColor,
-      }]}>Hey! Welcome</Text>
-      <Text style={[style.text, { color: textColor}]}>This is a school cantine rating system made for CG Plzeň by Václav Klimeš</Text>
+      <Text style={[style.title, { color: textColor }]}>Hey! Welcome</Text>
+      <Text style={[style.text, { color: textColor }]}>This is a school canteen rating system made for CG Plzeň by Václav Klimeš</Text>
       <TouchableHighlight onPress={() => setModalVisible(!modalVisible)} underlayColor="transparent">
         <View style={style.button}>
           <Text style={style.buttonText}>Get Started</Text>
         </View>
       </TouchableHighlight>
       <TouchableHighlight onPress={() => console.log("Button Pressed")} underlayColor="transparent">
-        <View style={[style.button, { backgroundColor: "#FFF"}]}>
+        <View style={[style.button, { backgroundColor: "#FFF" }]}>
           <Text style={style.buttonText}>I already have an account</Text>
         </View>
       </TouchableHighlight>
@@ -90,11 +102,11 @@ const style = StyleSheet.create({
   },
   modalView: {
     flex: 1,
-    marginTop: 65, // Add margin to the top
+    marginTop: 65,
     backgroundColor: "#FFF",
     borderRadius: 40,
-    height: '90%', // Reduce height to 90% of the screen
-    justifyContent: 'center', // Center the modal vertically
+    height: '90%',
+    justifyContent: 'center',
   }
 });
 
