@@ -47,11 +47,16 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const isAuthenticated = false;
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {isAuthenticated ? (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        ) : (
+          <Stack.Screen name="screens/Welcome" options={{ headerShown: false }} />
+        )}
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
