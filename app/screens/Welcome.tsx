@@ -16,9 +16,8 @@ import Colors from "@/constants/Colors";
 import ColorPalette from "@/constants/ColorPalette";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { auth, db } from "@/config/firebaseConfig"; // Updated import
-import { createUserWithEmailAndPassword, signInWithCredential, GoogleAuthProvider } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import * as Google from 'expo-auth-session/providers/google';
 
 type UserData = {
   username: string;
@@ -57,10 +56,6 @@ function Welcome() {
   });
 
   const [error, setError] = useState<string | null>(null);
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: 'YOUR_EXPO_CLIENT_ID', // replace with your Expo client ID
-  });
 
   const panResponder = useRef(
     PanResponder.create({
@@ -123,40 +118,6 @@ function Welcome() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await promptAsync();
-
-      if (result.type === "success") {
-        const { id_token } = result.params;
-        const credential = GoogleAuthProvider.credential(id_token);
-        await signInWithCredential(auth, credential);
-
-        // Check if user exists in Firestore and create if not
-        const userId = auth.currentUser?.uid;
-        if (userId) {
-          const userDoc = await getDoc(doc(db, "users", userId));
-          if (!userDoc.exists()) {
-            const userFirestoreData = {
-              userUID: userId,
-              username: userData.username,
-              fullName: userData.fullName,
-              email: userData.email,
-              grade: "6.B",
-              role: "guest",
-              notes: {},
-              contributions: {},
-              inbox: []
-            };
-            await setDoc(doc(db, "users", userId), userFirestoreData);
-          }
-        }
-      }
-    } catch (e: any) {
-      setError(e.message);
-    }
-  };
-
   return (
     <SafeAreaView style={style.container}>
       <Modal
@@ -180,6 +141,7 @@ function Welcome() {
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
             placeholder={"Username"}
             autoComplete="username"
+            autoCapitalize="none"
             value={userData.username}
             onChangeText={(value) => handleChange("username", value)}
           />
@@ -187,6 +149,7 @@ function Welcome() {
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
             placeholder={"Full Name"}
             autoComplete="name"
+            autoCapitalize="words"
             value={userData.fullName}
             onChangeText={(value) => handleChange("fullName", value)}
           />
@@ -194,6 +157,7 @@ function Welcome() {
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
             placeholder={"Email"}
             autoComplete="email"
+            autoCapitalize="none"
             value={userData.email}
             onChangeText={(value) => handleChange("email", value)}
           />
@@ -203,6 +167,7 @@ function Welcome() {
             secureTextEntry
             autoComplete="new-password"
             textContentType="newPassword"
+            autoCapitalize="none"
             value={userData.password}
             onChangeText={(value) => handleChange("password", value)}
           />
@@ -212,17 +177,13 @@ function Welcome() {
             secureTextEntry
             autoComplete="new-password"
             textContentType="newPassword"
+            autoCapitalize="none"
             value={userData.confirmPassword}
             onChangeText={(value) => handleChange("confirmPassword", value)}
           />
           <TouchableHighlight onPress={handleSubmit} underlayColor="transparent">
             <View style={style.button}>
               <Text style={style.buttonText}>Sign Up</Text>
-            </View>
-          </TouchableHighlight>
-          <TouchableHighlight onPress={handleGoogleSignIn} underlayColor="transparent">
-            <View style={style.button}>
-              <Text style={style.buttonText}>Sign In with Google</Text>
             </View>
           </TouchableHighlight>
         </SafeAreaView>
