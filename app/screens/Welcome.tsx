@@ -4,10 +4,10 @@ import {
   SafeAreaView,
   Image,
   Text,
-  TextInput,
   Button,
   View,
-  TouchableHighlight, TouchableWithoutFeedback, Modal,
+  TouchableHighlight,
+  Modal,
 } from "react-native";
 import {useColorScheme} from "@/components/useColorScheme";
 import Colors from "@/constants/Colors";
@@ -26,9 +26,10 @@ function Welcome() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(!modalVisible)}
         >
-
+        <SafeAreaView style={style.modalView}>
+          <Button title={"Close"} onPress={() => setModalVisible(!modalVisible)}></Button>
+        </SafeAreaView>
       </Modal>
-
 
       <Image style={style.image} source={require("../../assets/images/icon.png")} />
       <Text style={[style.title, {
@@ -86,6 +87,14 @@ const style = StyleSheet.create({
   },
   buttonText: {
     fontWeight: "bold",
+  },
+  modalView: {
+    flex: 1,
+    marginTop: 65, // Add margin to the top
+    backgroundColor: "#FFF",
+    borderRadius: 40,
+    height: '90%', // Reduce height to 90% of the screen
+    justifyContent: 'center', // Center the modal vertically
   }
 });
 
