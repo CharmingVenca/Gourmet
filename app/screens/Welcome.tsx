@@ -15,21 +15,28 @@ import { useColorScheme } from "@/components/useColorScheme";
 import Colors from "@/constants/Colors";
 import ColorPalette from "@/constants/ColorPalette";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { auth, db } from "@/config/firebaseConfig"; // Updated import
+import { auth, db } from "@/config/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { Dropdown } from "react-native-element-dropdown";
+import { useNavigation } from "@react-navigation/native";
+import { query, where, collection, getDocs } from "firebase/firestore";
+import { router } from "expo-router";
+import {canGoBack} from "expo-router/build/global-state/routing";
 
 type UserData = {
   username: string;
   fullName: string;
+  grade: string;
   email: string;
   password: string;
   confirmPassword: string;
 };
 
 async function isUsernameUnique(username: string): Promise<boolean> {
-  const userDoc = await getDoc(doc(db, "users", username));
-  return !userDoc.exists();
+  const q = query(collection(db, "users"), where("username", "==", username));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.empty;
 }
 
 function getDynamicStyles(type: string, colorScheme: string) {
@@ -50,12 +57,14 @@ function Welcome() {
   const [userData, setUserData] = useState<UserData>({
     username: "",
     fullName: "",
+    grade: "",
     email: "",
     password: "",
     confirmPassword: ""
   });
 
   const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation();
 
   const panResponder = useRef(
     PanResponder.create({
@@ -83,7 +92,16 @@ function Welcome() {
     return null;
   };
 
+  const areFieldsFilled = () => {
+    return Object.values(userData).every(field => field.trim() !== "");
+  };
+
   const handleSubmit = async () => {
+    if (!areFieldsFilled()) {
+      setError("All fields must be filled.");
+      return;
+    }
+
     const validationError = validatePassword();
     if (validationError) {
       setError(validationError);
@@ -105,18 +123,40 @@ function Welcome() {
           username: userData.username,
           fullName: userData.fullName,
           email: userData.email,
-          grade: "6.B",
+          grade: userData.grade,
           role: "guest",
           notes: {},
           contributions: {},
           inbox: []
         };
         await setDoc(doc(db, "users", userId), userFirestoreData);
+        setError(null);
+        setModalVisible(false)
+        router.navigate('/(tabs)/two')
       }
     } catch (e: any) {
       setError(e.message);
     }
   };
+
+  const data = [
+    { label: '1A', value: '1A' },
+    { label: '1B', value: '1B' },
+    { label: '2A', value: '2A' },
+    { label: '2B', value: '2B' },
+    { label: '3A', value: '3A' },
+    { label: '3B', value: '3B' },
+    { label: '4A', value: '4A' },
+    { label: '4B', value: '4B' },
+    { label: '5A', value: '5A' },
+    { label: '5B', value: '5B' },
+    { label: '6A', value: '6A' },
+    { label: '6B', value: '6B' },
+    { label: '7A', value: '7A' },
+    { label: '7B', value: '7B' },
+    { label: '8A', value: '8A' },
+    { label: '8B', value: '8B' },
+  ];
 
   return (
     <SafeAreaView style={style.container}>
@@ -137,6 +177,7 @@ function Welcome() {
             fontSize: 25,
             color: Colors[colorScheme ?? 'light'].text
           }]}>Create an account</Text>
+          {error && <Text style={style.errorText}>{error}</Text>}
           <TextInput
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
             placeholder={"Username"}
@@ -144,6 +185,7 @@ function Welcome() {
             autoCapitalize="none"
             value={userData.username}
             onChangeText={(value) => handleChange("username", value)}
+            autoCorrect={false}
           />
           <TextInput
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
@@ -153,6 +195,21 @@ function Welcome() {
             value={userData.fullName}
             onChangeText={(value) => handleChange("fullName", value)}
           />
+          <Dropdown
+            style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
+            placeholderStyle={style.placeholderStyle}
+            selectedTextStyle={{ fontSize: 15 }}
+            containerStyle={style.dropdownContainer}
+            data={data}
+            maxHeight={300}
+            labelField="label"
+            valueField="value"
+            placeholder={"Grade"}
+            value={userData.grade}
+            onChange={item => {
+              handleChange("grade", item.value);
+            }}
+          />
           <TextInput
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
             placeholder={"Email"}
@@ -160,6 +217,7 @@ function Welcome() {
             autoCapitalize="none"
             value={userData.email}
             onChangeText={(value) => handleChange("email", value)}
+            autoCorrect={false}
           />
           <TextInput
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
@@ -186,6 +244,9 @@ function Welcome() {
               <Text style={style.buttonText}>Sign Up</Text>
             </View>
           </TouchableHighlight>
+          <TouchableHighlight>
+            <Text style={[style.text, { color: textColor, }]}>Already have an account?</Text>
+          </TouchableHighlight>
         </SafeAreaView>
       </Modal>
 
@@ -199,7 +260,7 @@ function Welcome() {
       </TouchableHighlight>
       <TouchableHighlight onPress={() => console.log("Button Pressed")} underlayColor="transparent">
         <View style={[style.button, { backgroundColor: Colors[colorScheme ?? 'light'].background, borderColor: colorScheme ==='dark' ? Colors.light.background : Colors.dark.background}]}>
-          <Text style={[style.buttonText, {color: Colors[colorScheme ?? 'light'].text}]}>I already have an account</Text>
+          <Text onPress={() => console.log("text pressed")} style={[style.buttonText, {color: Colors[colorScheme ?? 'light'].text}]}>I already have an account</Text>
         </View>
       </TouchableHighlight>
     </SafeAreaView>
@@ -236,6 +297,13 @@ const style = StyleSheet.create({
     borderRadius: 10,
     paddingLeft: 15
   },
+  picker: {
+    width: 300,
+    height: 40,
+    marginBottom: 15,
+    borderWidth: 0.3,
+    borderRadius: 10,
+  },
   button: {
     width: 300,
     height: 50,
@@ -260,11 +328,38 @@ const style = StyleSheet.create({
     position: "absolute",
     top: 20,
     left: 20,
+    zIndex: 1001,
   },
   errorText: {
     color: 'red',
     marginBottom: 10,
-  }
+  },
+  dropdownContainer: {
+    borderRadius: 10,
+  },
+  dropdown: {
+    height: 50,
+    borderColor: 'gray',
+    borderWidth: 0.5,
+    borderRadius: 10,
+    width: 300
+  },
+  label: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    left: 22,
+    top: 8,
+    paddingHorizontal: 8,
+  },
+  placeholderStyle: {
+    fontSize: 13,
+    color: "black",
+    opacity: 0.3,
+    fontWeight: "normal",
+  },
+  selectedTextStyle: {
+    fontSize: 16,
+  },
 });
 
 export default Welcome;
