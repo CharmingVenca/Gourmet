@@ -16,7 +16,7 @@ import Colors from "@/constants/Colors";
 import ColorPalette from "@/constants/ColorPalette";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { auth, db } from "@/config/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Dropdown } from "react-native-element-dropdown";
 import { useNavigation } from "@react-navigation/native";
@@ -53,7 +53,8 @@ function getDynamicStyles(type: string, colorScheme: string) {
 function Welcome() {
   const colorScheme = useColorScheme();
   const textColor = colorScheme === 'dark' ? Colors.dark.text : Colors.light.text;
-  const [modalVisible, setModalVisible] = useState(false);
+  const [signupModalVisible, setSignupModalVisible] = useState(false);
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
   const [userData, setUserData] = useState<UserData>({
     username: "",
     fullName: "",
@@ -72,7 +73,7 @@ function Welcome() {
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (_evt, gestureState) => {
         if (gestureState.dy > 50) {
-          setModalVisible(false);
+          setSignupModalVisible(false);
         }
       },
     })
@@ -131,7 +132,7 @@ function Welcome() {
         };
         await setDoc(doc(db, "users", userId), userFirestoreData);
         setError(null);
-        setModalVisible(false)
+        setSignupModalVisible(false)
         router.navigate('/(tabs)/two')
       }
     } catch (e: any) {
@@ -139,7 +140,7 @@ function Welcome() {
     }
   };
 
-  const data = [
+  const grades = [
     { label: '1A', value: '1A' },
     { label: '1B', value: '1B' },
     { label: '2A', value: '2A' },
@@ -158,16 +159,46 @@ function Welcome() {
     { label: '8B', value: '8B' },
   ];
 
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: ""
+  });
+
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  const handleLoginChange = (field: keyof typeof loginData, value: string) => {
+    setLoginData(prevState => ({ ...prevState, [field]: value }));
+  };
+
+  const handleLogin = async () => {
+    if (!loginData.email || !loginData.password) {
+      setLoginError("All fields must be filled.");
+      return;
+    }
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
+      const userId = userCredential.user.uid;
+      if (userId) {
+        setLoginError(null);
+        setLoginModalVisible(false);
+        router.navigate('/(tabs)/two');
+      }
+    } catch (e: any) {
+      setLoginError(e.message);
+    }
+  };
+
   return (
     <SafeAreaView style={style.container}>
       <Modal
         animationType="slide"
         transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(!modalVisible)}
+        visible={signupModalVisible}
+        onRequestClose={() => setSignupModalVisible(!signupModalVisible)}
       >
         <SafeAreaView style={[style.modalView, { backgroundColor: Colors[colorScheme ?? 'light'].background}]} {...panResponder.panHandlers}>
-          <Pressable style={style.buttonClose} onPress={() => setModalVisible(false)}>
+          <Pressable style={style.buttonClose} onPress={() => setSignupModalVisible(false)}>
             <MaterialIcons name="close" size={24} color={Colors[colorScheme ?? 'light'].text} />
           </Pressable>
           <Text style={[style.title, {
@@ -200,7 +231,7 @@ function Welcome() {
             placeholderStyle={style.placeholderStyle}
             selectedTextStyle={{ fontSize: 15 }}
             containerStyle={style.dropdownContainer}
-            data={data}
+            data={grades}
             maxHeight={300}
             labelField="label"
             valueField="value"
@@ -250,17 +281,68 @@ function Welcome() {
         </SafeAreaView>
       </Modal>
 
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={loginModalVisible}
+        onRequestClose={() => setLoginModalVisible(!loginModalVisible)}
+      >
+        <SafeAreaView style={[style.modalView, { backgroundColor: Colors[colorScheme ?? 'light'].background}]} {...panResponder.panHandlers}>
+          <Pressable style={style.buttonClose} onPress={() => setLoginModalVisible(false)}>
+            <MaterialIcons name="close" size={24} color={Colors[colorScheme ?? 'light'].text} />
+          </Pressable>
+          <Text style={[style.title, {
+            marginTop: 50,
+            marginBottom: 50,
+            fontWeight: 800,
+            fontSize: 25,
+            color: Colors[colorScheme ?? 'light'].text
+          }]}>Log In</Text>
+          {loginError && <Text style={style.errorText}>{loginError}</Text>}
+          <TextInput
+            style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
+            placeholder={"Email"}
+            autoComplete="email"
+            autoCapitalize="none"
+            value={loginData.email}
+            onChangeText={(value) => handleLoginChange("email", value)}
+            autoCorrect={false}
+          />
+          <TextInput
+            style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
+            placeholder={"Password"}
+            secureTextEntry
+            autoComplete="password"
+            textContentType="password"
+            autoCapitalize="none"
+            value={loginData.password}
+            onChangeText={(value) => handleLoginChange("password", value)}
+          />
+          <TouchableHighlight onPress={handleLogin} underlayColor="transparent">
+            <View style={style.button}>
+              <Text style={style.buttonText}>Log In</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight onPress={() => {
+            setLoginModalVisible(false);
+            setSignupModalVisible(true);
+          }}>
+            <Text style={[style.text, { color: textColor, }]}>Don't have an account?</Text>
+          </TouchableHighlight>
+        </SafeAreaView>
+      </Modal>
+
       <Image style={style.image} source={require("../../assets/images/icon.png")} />
       <Text style={[style.title, { color: textColor }]}>Hey! Welcome</Text>
       <Text style={[style.text, { color: textColor }]}>This is a school canteen rating system made for CG Plzeň by Václav Klimeš</Text>
-      <TouchableHighlight onPress={() => setModalVisible(!modalVisible)} underlayColor="transparent">
+      <TouchableHighlight onPress={() => setSignupModalVisible(!signupModalVisible)} underlayColor="transparent">
         <View style={style.button}>
           <Text style={style.buttonText}>Get Started</Text>
         </View>
       </TouchableHighlight>
-      <TouchableHighlight onPress={() => console.log("Button Pressed")} underlayColor="transparent">
+      <TouchableHighlight onPress={() => setLoginModalVisible(true)} underlayColor="transparent">
         <View style={[style.button, { backgroundColor: Colors[colorScheme ?? 'light'].background, borderColor: colorScheme ==='dark' ? Colors.light.background : Colors.dark.background}]}>
-          <Text onPress={() => console.log("text pressed")} style={[style.buttonText, {color: Colors[colorScheme ?? 'light'].text}]}>I already have an account</Text>
+          <Text style={[style.buttonText, {color: Colors[colorScheme ?? 'light'].text}]}>I already have an account</Text>
         </View>
       </TouchableHighlight>
     </SafeAreaView>
