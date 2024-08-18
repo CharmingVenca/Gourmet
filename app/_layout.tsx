@@ -9,6 +9,9 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import LoadingScreen from "@/app/screens/LoadingScreen";
+import ErrorScreen from "@/app/screens/ErrorScreen";
+import AppNavigator from './AppNavigator';
 
 export {
   ErrorBoundary,
@@ -42,6 +45,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <AppNavigator />
       <RootLayoutNav />
     </AuthProvider>
   );
@@ -49,17 +53,26 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        {user ? (
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        ) : (
-          <Stack.Screen name="screens/Welcome" options={{ headerShown: false }} />
-        )}
-      </Stack>
-    </ThemeProvider>
-  );
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  try {
+    return (
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          {user ? (
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          ) : (
+            <Stack.Screen name="screens/Welcome" options={{ headerShown: false }} />
+          )}
+        </Stack>
+      </ThemeProvider>
+    );
+  } catch (error) {
+    console.error("Error during navigation:", error);
+    return <ErrorScreen />;  // A fallback error screen
+  }
 }

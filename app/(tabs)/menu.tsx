@@ -1,13 +1,10 @@
-import { Button, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { View } from '@/components/Themed';
-import { useAuthentication } from '@/hooks/useAuthentication';
 
 export default function Menu() {
-  const { logout } = useAuthentication();
-
   return (
     <View style={styles.container}>
-      <Button title={"Log out"} onPress={logout} />
+
     </View>
   );
 }

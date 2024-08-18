@@ -76,13 +76,18 @@ export function useAuthentication() {
     }
 
     try {
+      console.log("Attempting to log in...");
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
+      console.log("User ID after login:", userId);
       if (userId) {
         setError(null);
+        console.log("Navigating to tabs screen...");
         router.replace('/(tabs)');
+        console.log("Navigation completed.");
       }
     } catch (e: any) {
+      console.error("Login error:", e);
       setError(e.message);
     }
   };
