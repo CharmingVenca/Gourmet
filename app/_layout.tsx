@@ -13,14 +13,17 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 
+// noinspection JSUnusedGlobalSymbols
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
+// noinspection JSIgnoredPromiseFromCall
 SplashScreen.preventAutoHideAsync();
 
+// noinspection JSUnusedGlobalSymbols
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -34,6 +37,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
+      // noinspection JSIgnoredPromiseFromCall
       SplashScreen.hideAsync();
     }
   }, [loaded]);

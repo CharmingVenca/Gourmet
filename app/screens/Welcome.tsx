@@ -17,12 +17,10 @@ import ColorPalette from "@/constants/ColorPalette";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { auth, db } from "@/config/firebaseConfig";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { Dropdown } from "react-native-element-dropdown";
-import { useNavigation } from "@react-navigation/native";
 import { query, where, collection, getDocs } from "firebase/firestore";
 import { router } from "expo-router";
-import {canGoBack} from "expo-router/build/global-state/routing";
 
 type UserData = {
   username: string;
@@ -65,8 +63,6 @@ function Welcome() {
   });
 
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
-
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -133,7 +129,7 @@ function Welcome() {
         await setDoc(doc(db, "users", userId), userFirestoreData);
         setError(null);
         setSignupModalVisible(false)
-        router.navigate('/(tabs)/two')
+        router.replace('/(tabs)/two')
       }
     } catch (e: any) {
       setError(e.message);
@@ -182,7 +178,7 @@ function Welcome() {
       if (userId) {
         setLoginError(null);
         setLoginModalVisible(false);
-        router.navigate('/(tabs)/two');
+        router.replace('/(tabs)');
       }
     } catch (e: any) {
       setLoginError(e.message);
@@ -444,4 +440,5 @@ const style = StyleSheet.create({
   },
 });
 
+// noinspection JSUnusedGlobalSymbols
 export default Welcome;
