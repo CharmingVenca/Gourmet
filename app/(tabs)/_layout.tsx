@@ -1,5 +1,5 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 
 import Colors from '@/constants/Colors';
@@ -8,10 +8,10 @@ import { useClientOnlyValue } from '@/hooks/useClientOnlyValue';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: React.ComponentProps<typeof MaterialIcons>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <MaterialIcons size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
 // noinspection JSUnusedGlobalSymbols
@@ -46,7 +46,7 @@ export default function TabLayout() {
         name="add"
         options={{
           title: '',
-          tabBarIcon: ({ color }) => <TabBarIcon name="plus" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="add" color={color} />,
           headerShown: false,
         }}
       />
@@ -62,7 +62,7 @@ export default function TabLayout() {
         name="menu"
         options={{
           title: 'Menu',
-          tabBarIcon: ({ color }) => <TabBarIcon name="bars" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="menu" color={color} />,
           headerShown: false,
         }}
       />
