@@ -1,4 +1,6 @@
-const tintColorLight = '#2f95dc';
+import ColorPalette from "@/constants/ColorPalette";
+
+const tintColorLight = ColorPalette.color3;
 const tintColorDark = '#fff';
 
 export default {
