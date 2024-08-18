@@ -1,10 +1,14 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { View } from '@/components/Themed';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TabOneScreen() {
+  const { user } = useAuth();
+  const authenticated = !!user;
+
   return (
     <View style={styles.container}>
-
+      <Text>Your are {authenticated ? "authenticated!" : "NOT authenticated"}</Text>
     </View>
   );
 }
