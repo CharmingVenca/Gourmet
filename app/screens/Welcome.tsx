@@ -11,7 +11,7 @@ import {
   Pressable,
   TextInput, TouchableWithoutFeedback,
 } from "react-native";
-import { useColorScheme } from "@/components/useColorScheme";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import Colors from "@/constants/Colors";
 import ColorPalette from "@/constants/ColorPalette";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
