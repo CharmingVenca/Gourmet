@@ -9,17 +9,16 @@ import {
   Modal,
   PanResponder,
   Pressable,
-  TextInput,
+  TextInput, TouchableWithoutFeedback,
 } from "react-native";
 import { useColorScheme } from "@/components/useColorScheme";
 import Colors from "@/constants/Colors";
 import ColorPalette from "@/constants/ColorPalette";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { auth, db } from "@/config/firebaseConfig";
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, query, where, collection, getDocs } from "firebase/firestore";
 import { Dropdown } from "react-native-element-dropdown";
-import { query, where, collection, getDocs } from "firebase/firestore";
 import { router } from "expo-router";
 
 type UserData = {
@@ -39,12 +38,18 @@ async function isUsernameUnique(username: string): Promise<boolean> {
 
 function getDynamicStyles(type: string, colorScheme: string) {
   switch (type) {
-    case "bd": return { borderColor: colorScheme === 'dark' ? Colors.dark.text : Colors.light.text };
-    case "bg": return { backgroundColor: colorScheme === 'dark' ? Colors.dark.background : Colors.light.background };
-    case "tn": return { tintColor: colorScheme === 'dark' ? Colors.dark.tint : Colors.light.tint };
-    case "tbID": return { tabIconDefault: colorScheme === 'dark' ? Colors.dark.tabIconDefault : Colors.light.tabIconDefault };
-    case "tbIS": return { tabIconSelected: colorScheme === 'dark' ? Colors.dark.tabIconSelected : Colors.light.tabIconSelected };
-    default: return {};
+    case "bd":
+      return { borderColor: colorScheme === 'dark' ? Colors.dark.text : Colors.light.text };
+    case "bg":
+      return { backgroundColor: colorScheme === 'dark' ? Colors.dark.background : Colors.light.background };
+    case "tn":
+      return { tintColor: colorScheme === 'dark' ? Colors.dark.tint : Colors.light.tint };
+    case "tbID":
+      return { tabIconDefault: colorScheme === 'dark' ? Colors.dark.tabIconDefault : Colors.light.tabIconDefault };
+    case "tbIS":
+      return { tabIconSelected: colorScheme === 'dark' ? Colors.dark.tabIconSelected : Colors.light.tabIconSelected };
+    default:
+      return {};
   }
 }
 
@@ -61,7 +66,6 @@ function Welcome() {
     password: "",
     confirmPassword: ""
   });
-
   const [error, setError] = useState<string | null>(null);
   const panResponder = useRef(
     PanResponder.create({
@@ -128,32 +132,13 @@ function Welcome() {
         };
         await setDoc(doc(db, "users", userId), userFirestoreData);
         setError(null);
-        setSignupModalVisible(false)
-        router.replace('/(tabs)/two')
+        setSignupModalVisible(false);
+        router.replace('/(tabs)/two');
       }
     } catch (e: any) {
       setError(e.message);
     }
   };
-
-  const grades = [
-    { label: '1A', value: '1A' },
-    { label: '1B', value: '1B' },
-    { label: '2A', value: '2A' },
-    { label: '2B', value: '2B' },
-    { label: '3A', value: '3A' },
-    { label: '3B', value: '3B' },
-    { label: '4A', value: '4A' },
-    { label: '4B', value: '4B' },
-    { label: '5A', value: '5A' },
-    { label: '5B', value: '5B' },
-    { label: '6A', value: '6A' },
-    { label: '6B', value: '6B' },
-    { label: '7A', value: '7A' },
-    { label: '7B', value: '7B' },
-    { label: '8A', value: '8A' },
-    { label: '8B', value: '8B' },
-  ];
 
   const [loginData, setLoginData] = useState({
     email: "",
@@ -185,6 +170,25 @@ function Welcome() {
     }
   };
 
+  const grades = [
+    { label: '1A', value: '1A' },
+    { label: '1B', value: '1B' },
+    { label: '2A', value: '2A' },
+    { label: '2B', value: '2B' },
+    { label: '3A', value: '3A' },
+    { label: '3B', value: '3B' },
+    { label: '4A', value: '4A' },
+    { label: '4B', value: '4B' },
+    { label: '5A', value: '5A' },
+    { label: '5B', value: '5B' },
+    { label: '6A', value: '6A' },
+    { label: '6B', value: '6B' },
+    { label: '7A', value: '7A' },
+    { label: '7B', value: '7B' },
+    { label: '8A', value: '8A' },
+    { label: '8B', value: '8B' },
+  ];
+
   return (
     <SafeAreaView style={style.container}>
       <Modal
@@ -193,17 +197,11 @@ function Welcome() {
         visible={signupModalVisible}
         onRequestClose={() => setSignupModalVisible(!signupModalVisible)}
       >
-        <SafeAreaView style={[style.modalView, { backgroundColor: Colors[colorScheme ?? 'light'].background}]} {...panResponder.panHandlers}>
+        <SafeAreaView style={[style.modalView, { backgroundColor: Colors[colorScheme ?? 'light'].background }]} {...panResponder.panHandlers}>
           <Pressable style={style.buttonClose} onPress={() => setSignupModalVisible(false)}>
             <MaterialIcons name="close" size={24} color={Colors[colorScheme ?? 'light'].text} />
           </Pressable>
-          <Text style={[style.title, {
-            marginTop: 50,
-            marginBottom: 50,
-            fontWeight: 800,
-            fontSize: 25,
-            color: Colors[colorScheme ?? 'light'].text
-          }]}>Create an account</Text>
+          <Text style={[style.title, { marginTop: 50, marginBottom: 50, fontWeight: 800, fontSize: 25, color: Colors[colorScheme ?? 'light'].text }]}>Create an account</Text>
           {error && <Text style={style.errorText}>{error}</Text>}
           <TextInput
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
@@ -223,7 +221,7 @@ function Welcome() {
             onChangeText={(value) => handleChange("fullName", value)}
           />
           <Dropdown
-            style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
+            style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light'), { paddingRight: 10}]}
             placeholderStyle={style.placeholderStyle}
             selectedTextStyle={{ fontSize: 15 }}
             containerStyle={style.dropdownContainer}
@@ -271,9 +269,12 @@ function Welcome() {
               <Text style={style.buttonText}>Sign Up</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight>
-            <Text style={[style.text, { color: textColor, }]}>Already have an account?</Text>
-          </TouchableHighlight>
+          <TouchableWithoutFeedback onPress={() => {
+            setSignupModalVisible(false);
+            setLoginModalVisible(true);
+          }}>
+            <Text style={[style.text, { color: textColor }]}>Already have an account?</Text>
+          </TouchableWithoutFeedback>
         </SafeAreaView>
       </Modal>
 
@@ -283,17 +284,11 @@ function Welcome() {
         visible={loginModalVisible}
         onRequestClose={() => setLoginModalVisible(!loginModalVisible)}
       >
-        <SafeAreaView style={[style.modalView, { backgroundColor: Colors[colorScheme ?? 'light'].background}]} {...panResponder.panHandlers}>
+        <SafeAreaView style={[style.modalView, { backgroundColor: Colors[colorScheme ?? 'light'].background }]} {...panResponder.panHandlers}>
           <Pressable style={style.buttonClose} onPress={() => setLoginModalVisible(false)}>
             <MaterialIcons name="close" size={24} color={Colors[colorScheme ?? 'light'].text} />
           </Pressable>
-          <Text style={[style.title, {
-            marginTop: 50,
-            marginBottom: 50,
-            fontWeight: 800,
-            fontSize: 25,
-            color: Colors[colorScheme ?? 'light'].text
-          }]}>Log In</Text>
+          <Text style={[style.title, { marginTop: 50, marginBottom: 50, fontWeight: 800, fontSize: 25, color: Colors[colorScheme ?? 'light'].text }]}>Log In</Text>
           {loginError && <Text style={style.errorText}>{loginError}</Text>}
           <TextInput
             style={[style.textInput, getDynamicStyles("bd", colorScheme || 'light')]}
@@ -319,12 +314,12 @@ function Welcome() {
               <Text style={style.buttonText}>Log In</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight onPress={() => {
+          <TouchableWithoutFeedback onPress={() => {
             setLoginModalVisible(false);
             setSignupModalVisible(true);
           }}>
-            <Text style={[style.text, { color: textColor, }]}>Don't have an account?</Text>
-          </TouchableHighlight>
+            <Text style={[style.text, { color: textColor }]}>Don't have an account?</Text>
+          </TouchableWithoutFeedback>
         </SafeAreaView>
       </Modal>
 
@@ -337,8 +332,8 @@ function Welcome() {
         </View>
       </TouchableHighlight>
       <TouchableHighlight onPress={() => setLoginModalVisible(true)} underlayColor="transparent">
-        <View style={[style.button, { backgroundColor: Colors[colorScheme ?? 'light'].background, borderColor: colorScheme ==='dark' ? Colors.light.background : Colors.dark.background}]}>
-          <Text style={[style.buttonText, {color: Colors[colorScheme ?? 'light'].text}]}>I already have an account</Text>
+        <View style={[style.button, { backgroundColor: Colors[colorScheme ?? 'light'].background, borderColor: colorScheme === 'dark' ? Colors.light.background : Colors.dark.background }]}>
+          <Text style={[style.buttonText, { color: Colors[colorScheme ?? 'light'].text }]}>I already have an account</Text>
         </View>
       </TouchableHighlight>
     </SafeAreaView>
@@ -373,14 +368,7 @@ const style = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 0.3,
     borderRadius: 10,
-    paddingLeft: 15
-  },
-  picker: {
-    width: 300,
-    height: 40,
-    marginBottom: 15,
-    borderWidth: 0.3,
-    borderRadius: 10,
+    paddingLeft: 15,
   },
   button: {
     width: 300,
@@ -415,28 +403,11 @@ const style = StyleSheet.create({
   dropdownContainer: {
     borderRadius: 10,
   },
-  dropdown: {
-    height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
-    borderRadius: 10,
-    width: 300
-  },
-  label: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    left: 22,
-    top: 8,
-    paddingHorizontal: 8,
-  },
   placeholderStyle: {
     fontSize: 13,
     color: "black",
     opacity: 0.3,
     fontWeight: "normal",
-  },
-  selectedTextStyle: {
-    fontSize: 16,
   },
 });
 
